@@ -1,0 +1,185 @@
+<html>
+<p><h5>8bitTennis</h5></p>
+<canvas id="gameCanvas" width="800" height="600">
+</canvas>
+<script>
+	var canvas;
+	var canvasContext;
+	var ballx=50;
+	var ballSpeed=10;
+	var bally=50;
+	var ballSpeedy=4;
+	var paddle1=250;
+	var paddle2=250;
+	const PADDLE_HEIGHT=100;
+	const PADDLE_THICKNESS=10;
+	var PlayerScore=0;
+	var ComputerScore=0;
+	const WINNER=7;
+	var StopIfWins=false;
+	function calculateMousePos(evt)								//evt is the event where we we seechanges when mouse is clicked
+	{
+		var rect=canvas.getBoundingClientRect();				//this event is going to work only inside the bounding range
+		var root=document.documentElement;							
+		var mouseX=evt.clientX-rect.left-root.scrollLeft;		//getting the position of canvas element
+		var mouseY=evt.clientY-rect.top-root.scrollTop;
+		return{
+			x:mouseX,
+			y:mouseY
+		}
+	}
+
+	function handleMouseClick(evt){
+		if(StopIfWins)
+		{
+			PlayerScore=0;
+			ComputerScore=0;
+			StopIfWins=false;
+		}
+	}
+
+	window.onload=function(){
+		console.log("hello World");
+		canvas=document.getElementById('gameCanvas');
+		canvasContext=canvas.getContext('2d');
+		var frameRate=30;
+		setInterval(function(){
+			draw();
+			move();
+			},1000/frameRate);
+		canvas.addEventListener('mousedown',handleMouseClick);
+		canvas.addEventListener('mousemove',function(evt){
+			var mousePos=calculateMousePos(evt);
+			paddle1=mousePos.y-(PADDLE_HEIGHT/2);
+			
+
+		});
+		
+	}
+	function ballReset(){
+		if(PlayerScore>=WINNER||ComputerScore>=WINNER)
+		{
+			
+			PlayerScore=0;
+			ComputerScore=0;
+			StopIfWins=true;
+		}
+		ballSpeed = -ballSpeed;
+		ballx=gameCanvas.width/2;
+		bally=gameCanvas.height/2;
+		
+	}
+
+	function computerMovement()
+	{
+		var paddle2Center=paddle2+(PADDLE_HEIGHT/2);
+		if(paddle2Center < bally-35)
+		{
+			paddle2=paddle2+6;
+		}
+		else if(paddle2Center > bally+35)
+		{
+			paddle2=paddle2-6;
+		}
+	}
+	function move()											//function to decide the speed, make sure to choose properid for width
+	{		
+		if(StopIfWins)
+		{
+			
+			canvasContext.fillStyle='white';
+			canvasContext.fillText('CLICK TO CONTINUE',350,500);
+			return;
+		}											//function to draw any attributes size etc.
+	
+		computerMovement();									//and height
+		ballx=ballx+ballSpeed;
+		bally=bally+ballSpeedy;
+		if(ballx<0)
+		{	
+			if(bally>paddle1 && bally<paddle1+PADDLE_HEIGHT)
+			{
+				ballSpeed = -ballSpeed;
+				var deltaY=bally-(paddle1+PADDLE_HEIGHT/2)
+				ballSpeedy=deltaY*0.35;
+			}
+			else
+			{
+				ComputerScore++;
+				ballReset();
+				
+			}
+		}
+		if(ballx>gameCanvas.width)
+		{
+			
+			if(bally>paddle2 && bally<paddle2+PADDLE_HEIGHT)
+			{
+				ballSpeed = -ballSpeed;
+				var delta2Y=bally-(paddle2+PADDLE_HEIGHT/2)
+				ballSpeedy=delta2Y*0.35;
+			}
+			else
+			{
+				PlayerScore++;
+				ballReset();
+				
+			}							//horizontal movement
+		}
+		if(bally<0)
+		{
+			ballSpeedy = -ballSpeedy;					//vertial movement
+		}
+		if(bally>gameCanvas.height)
+		{
+			ballSpeedy = -ballSpeedy;
+		}
+	}
+	function drawNet(){
+		for(var i=0;i<=gameCanvas.height;i+=40)
+		{
+			colorRect((gameCanvas.width/2)-1,i,2,20,'white');
+		}
+	}
+	function result()
+	{
+		if(PlayerScore>=WINNER)
+		{
+
+			canvasContext.fillText("PLAYER WON",350,100);
+		}
+		else if(ComputerScore>=WINNER)
+		{
+			canvasContext.fillText("COMPUTER WON, YOU IDIOT",350,100);
+		}
+	}
+	function draw(){
+
+		colorRect(0,0,canvas.width,canvas.height,'blue');
+		if(StopIfWins)
+		{
+			
+			canvasContext.fillStyle='white';
+			result();
+			canvasContext.fillText('CLICK TO CONTINUE',350,500);
+			return;
+		}											//function to draw any attributes size etc.
+
+		
+		colorRect(0,paddle1,PADDLE_THICKNESS,PADDLE_HEIGHT,'green');
+		colorRect(gameCanvas.width-PADDLE_THICKNESS,paddle2,PADDLE_THICKNESS,PADDLE_HEIGHT,'green');
+
+		canvasContext.fillStyle='green';
+		canvasContext.beginPath();
+		canvasContext.arc(ballx,bally,10,0,Math.PI*2,true);	//circle attribute/true represents the upper half while false the lower or negative half
+		canvasContext.fill();
+		drawNet();
+		canvasContext.fillText('PLAYER'+PlayerScore,100,100);
+		canvasContext.fillText('COMPUTER'+ComputerScore,gameCanvas.width-100,100);
+	}
+	function colorRect(leftX,topY,width,height,color){		//creating a new function for rectangle attributes, so we do not have
+		canvasContext.fillStyle=color;						
+		canvasContext.fillRect(leftX,topY,width,height);	// write it multiple time 
+	}
+</script>
+</html>
